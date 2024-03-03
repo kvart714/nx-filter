@@ -3,7 +3,7 @@ import { ConfigurationProvider } from './configuration-provider'
 import { NxProvider } from './nx-project-provider'
 
 
-export class NxAppsProvider implements vscode.TreeDataProvider<NxProjItem> {
+export class NxTreeDataProvider implements vscode.TreeDataProvider<NxProjItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<NxProjItem | undefined> = new vscode.EventEmitter<NxProjItem | undefined>()
     readonly onDidChangeTreeData: vscode.Event<NxProjItem | undefined> = this._onDidChangeTreeData.event
 
@@ -12,11 +12,16 @@ export class NxAppsProvider implements vscode.TreeDataProvider<NxProjItem> {
     }
 
     async getChildren(element?: NxProjItem): Promise<NxProjItem[]> {
-		const nxApps = await NxProvider.getNxProjects(false)
-		
-		const excludes = ConfigurationProvider.getExcludes(nxApps.map(p => p.root))
-
-        return nxApps.map(p => new NxProjItem(p.name, p.root, p.projectType, !excludes[p.root]))
+		try {
+			const nxApps = await NxProvider.getNxProjects(false)
+			
+			const excludes = ConfigurationProvider.getExcludes(nxApps.map(p => p.root))
+	
+			return nxApps.map(p => new NxProjItem(p.name, p.root, p.projectType, !excludes[p.root]))
+		}
+		catch {
+			return []
+		}
     }
 
     refresh(): void {
@@ -24,7 +29,7 @@ export class NxAppsProvider implements vscode.TreeDataProvider<NxProjItem> {
     }
 
 	public static create(context: vscode.ExtensionContext) {
-		const nxAppsProvider = new NxAppsProvider()
+		const nxAppsProvider = new NxTreeDataProvider()
 		const treeView = vscode.window.createTreeView('nxApps', {
 			treeDataProvider: nxAppsProvider,
 			showCollapseAll: false
@@ -64,7 +69,6 @@ class NxProjItem extends vscode.TreeItem {
 		this.description = type
 		
 		this.contextValue = 'nxApp'
-        this.command = { command: 'extension.toggleNxApp', title: '', arguments: [this] }
         this.checked = checked
 	}
 	

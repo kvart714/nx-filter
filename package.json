@@ -1,22 +1,38 @@
 {
   "name": "nx-filter",
-  "displayName": "nx-filter",
-  "description": "",
+  "displayName": "NX Filter",
+  "description": "Easily hide NX projects from your workspace",
   "version": "0.0.1",
+  "author": {
+    "name": "kvart714",
+    "email": "kvart714@gmail.com",
+    "url": "https://github.com/kvart714/nx-filter"
+  },
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/kvart714/nx-filter"
+  },
+  "homepage": "https://github.com/kvart714/nx-filter",
+  "publisher": "kvart714",
   "engines": {
     "vscode": "^1.86.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "icon": "icon.png",
+  "activationEvents": [
+    "workspaceContains:workspace.json", 
+    "workspaceContains:nx.json"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "views": {
       "explorer": [
           {
               "id": "nxApps",
-              "name": "NX Projects"
+              "name": "NX Projects",
+              "visibility": "collapsed"
           }
       ]
     },
@@ -29,6 +45,12 @@
           }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "nxApps",
+        "contents": "The current directory isn't part of an Nx workspace.\n[Refresh](command:nxApps.refresh)"
+      }
+    ],
     "commands": [
       {
         "command": "nxApps.refresh",
