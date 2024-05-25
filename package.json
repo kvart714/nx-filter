@@ -2,7 +2,7 @@
   "name": "nx-filter",
   "displayName": "NX Filter",
   "description": "Easily hide NX projects from your workspace",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "author": {
     "name": "kvart714",
     "email": "kvart714@gmail.com",

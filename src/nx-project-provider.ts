@@ -7,7 +7,7 @@ import { ConfigurationProvider } from './configuration-provider'
 export interface NxProjInfo {
     name: string;
     root: string;
-    projectType: string;
+    projectType: 'library' | 'application';
 }
 
 export class NxProvider {

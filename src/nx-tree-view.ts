@@ -1,23 +1,35 @@
 import * as vscode from 'vscode'
 import { ConfigurationProvider } from './configuration-provider'
 import { NxProvider } from './nx-project-provider'
+import { NxItemBase } from './tree-item/nx-item-base'
+import { NxGroupItem } from './tree-item/nx-group-item'
+import { NxProjItem } from './tree-item/nx-proj-item'
 
 
-export class NxTreeDataProvider implements vscode.TreeDataProvider<NxProjItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<NxProjItem | undefined> = new vscode.EventEmitter<NxProjItem | undefined>()
-    readonly onDidChangeTreeData: vscode.Event<NxProjItem | undefined> = this._onDidChangeTreeData.event
+export class NxTreeDataProvider implements vscode.TreeDataProvider<NxItemBase> {
+    private _onDidChangeTreeData: vscode.EventEmitter<NxItemBase | undefined> = new vscode.EventEmitter<NxItemBase | undefined>()
+    readonly onDidChangeTreeData: vscode.Event<NxItemBase | undefined> = this._onDidChangeTreeData.event
 
-    getTreeItem(element: NxProjItem): vscode.TreeItem {
+    getTreeItem(element: NxItemBase): vscode.TreeItem {
         return element
     }
 
-    async getChildren(element?: NxProjItem): Promise<NxProjItem[]> {
+    async getChildren(element?: NxItemBase): Promise<NxItemBase[]> {
 		try {
+			if (element instanceof NxGroupItem) {
+				return element.children
+			}
+
 			const nxApps = await NxProvider.getNxProjects(false)
 			
 			const excludes = ConfigurationProvider.getExcludes(nxApps.map(p => p.root))
 	
-			return nxApps.map(p => new NxProjItem(p.name, p.root, p.projectType, !excludes[p.root]))
+			var items = nxApps.map(p => new NxProjItem(p.name, p.root, p.projectType, !excludes[p.root]))
+
+			return [
+				new NxGroupItem('Nx Apps', items.filter(i => i.type === 'application')),
+				new NxGroupItem('Nx Libs', items.filter(i => i.type === 'library'))
+			]
 		}
 		catch {
 			return []
@@ -35,48 +47,12 @@ export class NxTreeDataProvider implements vscode.TreeDataProvider<NxProjItem> {
 			showCollapseAll: false
 		})
 	
-		treeView.onDidChangeCheckboxState(async ({ items: [[nxApp]] }) => nxApp.toggle())
+		treeView.onDidChangeCheckboxState(async ({ items: [[nxItem]] }) => await nxItem.toggle())
 		const refreshCmd = vscode.commands.registerCommand('nxApps.refresh', () => {
             nxAppsProvider.refresh()
 		})
 		
 		context.subscriptions.push(refreshCmd)
 		context.subscriptions.push(treeView)
-	}
-}
-
-class NxProjItem extends vscode.TreeItem {
-
-	get checked(): boolean {
-        return this.checkboxState === vscode.TreeItemCheckboxState.Checked
-    }
-
-    set checked(value: boolean) {
-        this.checkboxState = value
-            ? vscode.TreeItemCheckboxState.Checked
-            : vscode.TreeItemCheckboxState.Unchecked
-	}
-
-	constructor(
-		public readonly name: string,
-		public readonly path: string,
-		public readonly type: string,
-		checked: boolean) {
-		
-		super(name, vscode.TreeItemCollapsibleState.None)
-		
-		this.tooltip = path
-		this.description = type
-		
-		this.contextValue = 'nxApp'
-        this.checked = checked
-	}
-	
-	public toggle() {
-		if (this.checked) {
-			ConfigurationProvider.removeFromExclude(this.path)
-		} else {
-			ConfigurationProvider.addToExclude(this.path)
-		}
 	}
 }

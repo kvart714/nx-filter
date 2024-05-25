@@ -15,7 +15,7 @@ export class ConfigurationProvider {
         if (!excludes[path]) {
             removeDefaults(excludes)
             excludes[path] = true
-            workspace.getConfiguration().update(FILES_EXCLUDE_CONFIG_KEY, excludes, ConfigurationTarget.Workspace)
+            await workspace.getConfiguration().update(FILES_EXCLUDE_CONFIG_KEY, excludes, ConfigurationTarget.Workspace)
         }
     }
 
@@ -27,7 +27,7 @@ export class ConfigurationProvider {
         if (excludes[path]) {
             removeDefaults(excludes)
             excludes[path] = undefined
-            workspace.getConfiguration().update(FILES_EXCLUDE_CONFIG_KEY, excludes, ConfigurationTarget.Workspace)
+            await workspace.getConfiguration().update(FILES_EXCLUDE_CONFIG_KEY, excludes, ConfigurationTarget.Workspace)
         }
     }
 
